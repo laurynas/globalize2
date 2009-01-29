@@ -215,6 +215,23 @@ class TranslatedTest < ActiveSupport::TestCase
     post = Post.find_by_subject('foo')
     assert_equal foo, post
   end
+
+  test "create with multiple translation at once" do
+    foo = Post.create :subject => {:'en-US' => 'foo', :'de-DE' => 'bar'}
+    I18n.locale = 'en-US'
+    assert_equal 'foo', foo.subject
+    I18n.locale = 'de-DE'
+    assert_equal 'bar', foo.subject
+  end
+
+  test "should be able update with multiple translation" do
+    foo = Post.create :subject => {:'en-US' => 'foo', :'de-DE' => 'bar'}
+    foo.subject = {:'en-US' => 'bar', :'de-DE' => 'foo'}
+    I18n.locale = 'en-US'
+    assert_equal 'bar', foo.subject
+    I18n.locale = 'de-DE'
+    assert_equal 'foo', foo.subject
+  end
 end
 
 # TODO error checking for fields that exist in main table, don't exist in

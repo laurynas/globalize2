@@ -9,8 +9,14 @@ module Globalize
       
       def write(locale, attr_name, value)
         locale = locale.to_sym
-        self[locale] ||= {}
-        self[locale][attr_name] = value
+        if value.is_a?(String)
+          self[locale] ||= {}
+          self[locale][attr_name] = value
+        elsif value.is_a?(Hash)
+          value.each do |locale, value|
+            self.write(locale, attr_name, value)
+          end
+        end
       end
     end
     
