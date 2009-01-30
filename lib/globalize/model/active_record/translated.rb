@@ -30,9 +30,7 @@ module Globalize
                 end
               end
 
-              after_save do |record|
-                record.globalize.update_translations!
-              end
+              after_save :update_globalize_record
               
               def i18n_attr(attribute_name)
                 self.name.underscore + "_translations.#{attribute_name}"
@@ -41,11 +39,20 @@ module Globalize
 
             self.globalize_options = options
             Globalize::Model::ActiveRecord.define_accessors(self, attr_names)
+            
+            # Import any callbacks that have been defined by extensions to Globalize2
+            # and run them.
+            extend Callbacks
+            Callbacks.instance_methods.each {|cb| send cb }
           end
-          
         end
 
-        module ClassMethods
+        # Dummy Callbacks module. Extensions to Globalize2 can insert methods into here
+        # and they'll be called at the end of the translates class method.
+        module Callbacks
+        end
+        
+        module ClassMethods          
           def method_missing(method, *args)
             if method.to_s =~ /^find_by_(\w+)$/ && globalize_options[:translated_attributes].include?($1.to_sym)
               find(:first, :joins => :globalize_translations,
@@ -89,6 +96,10 @@ module Globalize
         module InstanceMethods
           def globalize
             @globalize ||= Adapter.new self
+          end
+          
+          def update_globalize_record
+            globalize.update_translations!
           end
         end
       end
