@@ -232,6 +232,22 @@ class TranslatedTest < ActiveSupport::TestCase
     I18n.locale = 'de-DE'
     assert_equal 'foo', foo.subject
   end
+  
+  test "create with hash and empty translations" do
+    foo = Post.create :subject => {:'en-US' => 'foo', :'de-DE' => ''}
+    I18n.locale = 'en-US'
+    assert_equal 'foo', foo.subject
+    I18n.locale = 'de-DE'
+    assert_equal '', foo.subject
+  end
+  
+  test "create with hash and empty first translations" do
+    foo = Post.create :subject => {:'en-US' => '', :'de-DE' => 'foo'}
+    I18n.locale = 'en-US'
+    assert_equal '', foo.subject
+    I18n.locale = 'de-DE'
+    assert_equal 'foo', foo.subject
+  end
 end
 
 # TODO error checking for fields that exist in main table, don't exist in
