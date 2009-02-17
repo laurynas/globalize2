@@ -288,6 +288,16 @@ class TranslatedTest < ActiveSupport::TestCase
     I18n.locale = 'de-DE'
     assert_equal 'foo', foo.subject
   end
+  
+  test "should be able to request for a specific locale as argument" do
+    post = Post.create :subject => 'foo'
+    I18n.locale = 'de-DE'
+    post.subject = 'bar'
+    I18n.locale = 'en-US'
+    assert_equal 'foo', post.subject
+    assert_equal 'foo', post.subject('en-US')
+    assert_equal 'bar', post.subject('de-DE')
+  end
 end
 
 # TODO should validate_presence_of take fallbacks into account? maybe we need

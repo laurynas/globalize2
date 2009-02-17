@@ -23,8 +23,8 @@ module Globalize
 
         def define_accessors(klass, attr_names)
           attr_names.each do |attr_name|
-            klass.send :define_method, attr_name, lambda {
-              globalize.fetch I18n.locale, attr_name
+            klass.send :define_method, attr_name, lambda {|*args|
+              globalize.fetch(args.length > 0 ? args.first : I18n.locale, attr_name)
             }
             klass.send :define_method, "#{attr_name}=", lambda {|val|
               globalize.stash I18n.locale, attr_name, val
