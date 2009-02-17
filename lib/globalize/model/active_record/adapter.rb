@@ -31,7 +31,8 @@ module Globalize
         # locale = I18n.locale
         @cache.read(locale, attr_name) || begin
           value = fetch_attribute locale, attr_name
-          @cache.write locale, attr_name, value
+          @cache.write locale, attr_name, value if value && value.locale == locale
+          value
         end
       end
       
@@ -46,6 +47,12 @@ module Globalize
           attrs.each{|attr_name, value| translation[attr_name] = value }
           translation.save!
         end
+        @stash.clear
+      end
+      
+      # Clears the cache
+      def clear
+        @cache.clear
       end
       
       private
@@ -54,7 +61,7 @@ module Globalize
         fallbacks = I18n.fallbacks[locale].map{|tag| tag.to_s}.map(&:to_sym)
         translations = @record.globalize_translations.by_locales(fallbacks)
         result, requested_locale = nil, locale
-      
+
         # Walk through the fallbacks, starting with the current locale itself, and moving
         # to the next best choice, until we find a match.
         # Check the @globalize_set_translations cache first to see if we've just changed the 

@@ -43,6 +43,14 @@ class TranslatedTest < ActiveSupport::TestCase
     assert_nothing_raised { post.globalize_translations }
   end
 
+  test "has German post_translations" do
+    I18n.locale = :de
+    post = Post.create :subject => 'foo'
+    assert_equal 1, post.globalize_translations.size
+    I18n.locale = :en
+    assert_equal 1, post.globalize_translations.size    
+  end
+  
   test "returns the value passed to :subject" do
     post = Post.new
     assert_equal 'foo', (post.subject = 'foo')
@@ -225,7 +233,7 @@ class TranslatedTest < ActiveSupport::TestCase
     assert_member 'subject', post.changed
     assert_member 'content', post.changed
   end
-
+  
   test 'change attribute on globalized model after locale switching' do
     post = Post.create :subject => 'foo', :content => 'bar'
     assert_equal [], post.changed
@@ -233,7 +241,21 @@ class TranslatedTest < ActiveSupport::TestCase
     I18n.locale = :de
     assert_equal [ 'subject' ], post.changed
   end
+  
+  test 'fallbacks with lots of locale switching' do
+    I18n.fallbacks.map :'de-DE' => [ :'en-US' ]
+    post = Post.create :subject => 'foo'
     
+    I18n.locale = :'de-DE'
+    assert_equal 'foo', post.subject
+    
+    I18n.locale = :'en-US'
+    post.update_attribute :subject, 'bar'
+    
+    I18n.locale = :'de-DE'
+    assert_equal 'bar', post.subject
+  end
+  
   test "create with multiple translation at once" do
     foo = Post.create :subject => {:'en-US' => 'foo', :'de-DE' => 'bar'}
     I18n.locale = 'en-US'
@@ -241,7 +263,7 @@ class TranslatedTest < ActiveSupport::TestCase
     I18n.locale = 'de-DE'
     assert_equal 'bar', foo.subject
   end
-
+  
   test "should be able update with multiple translation" do
     foo = Post.create :subject => {:'en-US' => 'foo', :'de-DE' => 'bar'}
     foo.subject = {:'en-US' => 'bar', :'de-DE' => 'foo'}
@@ -268,6 +290,8 @@ class TranslatedTest < ActiveSupport::TestCase
   end
 end
 
+# TODO should validate_presence_of take fallbacks into account? maybe we need
+#   an extra validation call, or more options for validate_presence_of.
 # TODO error checking for fields that exist in main table, don't exist in
 # proxy table, aren't strings or text
 # 
