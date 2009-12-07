@@ -241,7 +241,7 @@ class TranslatedTest < ActiveSupport::TestCase
     assert_member 'subject', post.changed
     assert_member 'content', post.changed
   end
-
+  
   test 'change attribute on globalized model after locale switching' do
     post = Post.create :subject => 'foo', :content => 'bar'
     assert_equal [], post.changed
@@ -249,7 +249,7 @@ class TranslatedTest < ActiveSupport::TestCase
     I18n.locale = :de
     assert_equal [ 'subject' ], post.changed
   end
-
+  
   test 'fallbacks with lots of locale switching' do
     I18n.fallbacks.map :'de-DE' => [ :'en-US' ]
     post = Post.create :subject => 'foo'
@@ -475,6 +475,14 @@ class TranslatedTest < ActiveSupport::TestCase
   
   test "don't override existing translation model" do
     assert PostTranslation.new.respond_to?(:existing_method)
+  end
+
+  test "create with multiple translation at once" do
+    foo = Post.create :subject => {:'en-US' => 'foo', :'de-DE' => 'bar'}
+    I18n.locale = 'en-US'
+    assert_equal 'foo', foo.subject
+    I18n.locale = 'de-DE'
+    assert_equal 'bar', foo.subject
   end
 end
 
